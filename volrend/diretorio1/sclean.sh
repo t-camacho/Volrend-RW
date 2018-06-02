@@ -6,7 +6,8 @@ files=("p_semaphore" "sequential" "thread_mutex" "thread_spin"
 
 for element in ${files[@]}
 do
-    path=$dir/"progs"/$element
+    path="progs"/$element
     cd $path
     make clean -f makefile
+	cd -
 done
