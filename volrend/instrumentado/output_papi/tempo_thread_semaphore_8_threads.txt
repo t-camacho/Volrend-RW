@@ -1,0 +1,14 @@
+Level 1 data cache misses: 1648
+Level 1 instructions cache misses: 1979
+Level 2 data cache misses: 795
+Level 2 instructions cache misses: 736
+Level 1 total cache misses: 3627
+Level 2 total cache misses: 1531
+L2 instruction cache accesses: 1979
+L3 data cache accesses: 795
+L3 instruction cache accesses: 736
+L3 total cache accesses: 1531
+L2 instruction cache reads: 1979
+L3 instruction cache reads: 736
+Total instructions executed: 27812
+
