@@ -32,6 +32,8 @@ long mask_image_length;
 char filename[FILENAME_STRING_SIZE];
 char input[INPUT_DIR_SIZE] = "test";
 
+PAPI_CONFIG papi;
+tbb::mutex papi_mutex;
 int main(int argc, char **argv) {
     int opt;
 
@@ -119,18 +121,21 @@ void Frame() {
 
     //std::cout << "\nRendering...\n\n";
 
-    PAPI_CONFIG papi;
     papi.init();
-    papi.start();
+    papi.thread_support();
     for(long i = 0; i < num_nodes; i++) {
         tg.run([&]{Render_Loop();});
     }
     tg.wait();
-    papi.stop();
-    papi.print();
 }
 
 void Render_Loop() {
+    int event_set = PAPI_NULL;
+	long_long values[qtd_events];
+	
+	papi.config(&event_set);
+	papi.start(event_set);
+    
     PIXEL *local_image_address;
     //char outfile[FILENAME_STRING_SIZE];
     long image_partition;
@@ -193,6 +198,11 @@ void Render_Loop() {
     #ifdef DIM
     }
     #endif
+    
+    papi.stop(event_set, values);
+	papi_mutex.lock();
+	papi.print(values, true);
+	papi_mutex.unlock();
 }
 
 void Allocate_Shading_Table(PIXEL **address1, long length) {

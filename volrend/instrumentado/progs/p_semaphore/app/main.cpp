@@ -30,6 +30,9 @@ long mask_image_length;
 char filename[FILENAME_STRING_SIZE];
 char input[INPUT_DIR_SIZE] = "test";
 
+PAPI_CONFIG papi;
+sem_t* papi_mutex;
+key_t mutex_key = 567890;
 int main(int argc, char **argv) {
     int opt;
 
@@ -128,9 +131,15 @@ void Frame() {
 
     // std::cout << "\nRendering...\n\n";
     
-    PAPI_CONFIG papi;
+    int mutex_id;
+    if ((mutex_id = shmget(mutex_key, sizeof(sem_t), IPC_CREAT | 0666)) == 1) {
+    	fprintf(stderr, "Error when creating mutex memory\n");
+    	exit(-1);
+    }
+    papi_mutex = (sem_t*) shmat(mutex_id, NULL, 0);
+    sem_init(papi_mutex, 1, 1);
     papi.init();
-    papi.start();
+    papi.thread_support();
     for(long i = 0; i < num_nodes; i++) {
         if(fork() == 0) {
             Render_Loop();
@@ -140,11 +149,18 @@ void Frame() {
     for(long i = 0;i < num_nodes; i++) {
         wait(NULL);
     }
-    papi.stop();
-    papi.print();
+    
+    shmdt(papi_mutex);
+    
 }
 
 void Render_Loop() {
+	int event_set = PAPI_NULL;
+	long_long values[qtd_events];
+	
+	papi.config(&event_set);
+	papi.start(event_set);
+
     PIXEL *local_image_address;
     // char outfile[FILENAME_STRING_SIZE];
     long image_partition;
@@ -207,6 +223,18 @@ void Render_Loop() {
     #ifdef DIM
     }
     #endif
+    
+	papi.stop(event_set, values);
+	int mutex_id;
+	if ((mutex_id = shmget(mutex_key, sizeof(sem_t), 0666)) == -1) {
+		fprintf(stderr, "Error reading mutex memory\n");
+		exit(-1);
+	}
+	papi_mutex = (sem_t*) shmat(mutex_id, NULL, 0);
+	sem_wait(papi_mutex);
+	papi.print(values, true);
+	sem_post(papi_mutex);
+	shmdt(papi_mutex);
 }
 
 void Allocate_Shading_Table(PIXEL **address1, long length) {

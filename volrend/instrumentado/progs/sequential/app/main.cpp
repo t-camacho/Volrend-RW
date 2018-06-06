@@ -101,11 +101,14 @@ void Frame() {
     //std::cout << "\nRendering...\n\n";
     
     PAPI_CONFIG papi;
+    int event_set = PAPI_NULL;
+    long_long values[qtd_events];
     papi.init();
-    papi.start();
+    papi.config(&event_set);
+    papi.start(event_set);
     Render_Loop();
-    papi.stop();
-    papi.print();
+    papi.stop(event_set, values);
+    papi.print(values);
 }
 
 void Render_Loop() {

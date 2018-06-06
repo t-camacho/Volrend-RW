@@ -2,7 +2,6 @@
 #include <stdio.h>
 #include <cstdlib>
 
-static int event_set = PAPI_NULL;
 static const int qtd_events = 13;	// length ofvector below
 static int events[] = {
 	PAPI_L1_DCM,	// Level 1 data cache misses
@@ -36,8 +35,6 @@ static const char* messages[] = {
 };
 
 class PAPI_CONFIG {
-	long_long values[qtd_events];	// vector to store counting results
-
 public:
 	void init() {
 		int ret;
@@ -45,18 +42,6 @@ public:
 			fprintf(stderr, "Error: could not initialize PAPI library\n");
 			fprintf(stderr, "\tError code: %d\n\t%s\n", ret, PAPI_strerror(ret));
 			exit(-1);
-		}
-		if ((ret = PAPI_create_eventset(&event_set)) != PAPI_OK) {
-			fprintf(stderr, "Error: could not create event set\n");
-			fprintf(stderr, "\tError code: %d\n\t%s\n", ret, PAPI_strerror(ret));
-			exit(-1);
-		}
-		for(int e = 0; e < qtd_events; e++) {
-			if ((ret = PAPI_add_event(event_set, events[e])) != PAPI_OK) {
-				fprintf(stderr, "Error: could not add event %d\n", e);
-				fprintf(stderr, "\tError code: %d\n\t%s\n", ret, PAPI_strerror(ret));
-				exit(-1);
-			}
 		}
 	}
 	
@@ -69,8 +54,24 @@ public:
 			exit(-1);
 		}
 	}
+	
+	void config(int* event_set) {
+		int ret;
+		if ((ret = PAPI_create_eventset(event_set)) != PAPI_OK) {
+			fprintf(stderr, "Error: could not create event set\n");
+			fprintf(stderr, "\tError code: %d\n\t%s\n", ret, PAPI_strerror(ret));
+			exit(-1);
+		}
+		for(int e = 0; e < qtd_events; e++) {
+			if ((ret = PAPI_add_event(*event_set, events[e])) != PAPI_OK) {
+				fprintf(stderr, "Error: could not add event %d\n", e);
+				fprintf(stderr, "\tError code: %d\n\t%s\n", ret, PAPI_strerror(ret));
+				exit(-1);
+			}
+		}
+	}
 
-	void start() {
+	void start(int event_set) {
 		int ret;
 		if ((ret = PAPI_start(event_set)) != PAPI_OK) {
 			fprintf(stderr, "Error: could not start events couting\n");
@@ -79,7 +80,7 @@ public:
 		}
 	}
 
-	void stop() {
+	void stop(int event_set, long_long *values) {
 		int ret;
 		if ((ret = PAPI_stop(event_set, values)) != PAPI_OK) {
 			fprintf(stderr, "Error: could not get count values\n");
@@ -88,7 +89,7 @@ public:
 		}
 	}
 
-	void reset() {
+	void reset(int event_set) {
 		int ret;
 		if ((ret = PAPI_reset(event_set)) != PAPI_OK) {
 			fprintf(stderr, "Error: could not reset counters\n");
@@ -97,14 +98,14 @@ public:
 		}
 	}
 
-	void print(bool with_thread = false) {
+	void print(long_long *values, bool with_thread = false) {
 		if (with_thread) {
 			unsigned long int id = PAPI_thread_id();
 			if (id == (unsigned long int) -1) {
 				fprintf(stderr, "Error: could not get thread id\n");
 				exit(-1);
 			}
-			printf("\t\tThread %lud:\n\n", id);
+			printf("\t\tThread %lu:\n\n", id);
 		}
 		for (int e = 0; e < qtd_events; e++) {
 			printf(messages[e], values[e]);
