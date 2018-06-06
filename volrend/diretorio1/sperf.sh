@@ -11,7 +11,7 @@ path="progs/sequential"
 cd $path
 for ((i=1;i<=${EXECUTIONS};i++)); do
 	echo -e "\n--> sequential $i/${EXECUTIONS}\n\n"
-	(perf stat -e instructions,cycles,mem-loads,mem-stores ./build/app/main -i native) 2>> ../../output/perf_sequential.txt
+	(perf stat -e instructions,cycles,mem-loads,mem-stores,cache-misses,dtlb_load_misses.miss_causes_a_walk,itlb_misses.miss_causes_a_walk ./build/app/main -i native) 2>> ../../output/perf_sequential.txt
 done
 cd -
 
@@ -20,17 +20,8 @@ for element in ${files[@]}; do
 	cd $path
 	for t in 2 4 8 16; do
 		for ((i=1;i<=${EXECUTIONS};i++)); do
-			if [ "$element" = "tbb" ]
-        	then
-            	if [ "$t" -le "4" ]
-            	then
-                	echo -e "\n--> $element ($t flows) $i/${EXECUTIONS}\n"
-                	(perf stat -e instructions,cycles,mem-loads,mem-stores ./build/app/main -i native -n $t) 2>> ../../output/perf_${element}_${t}_threads.txt
-            	fi
-        	else
-            	echo -e "\n--> $element ($t flows) $i/${EXECUTIONS}\n"
-                	(perf stat -e instructions,cycles,mem-loads,mem-stores ./build/app/main -i native -n $t) 2>> ../../output/perf_${element}_${t}_threads.txt
-        	fi
+            	    echo -e "\n--> $element ($t flows) $i/${EXECUTIONS}\n"
+                    (perf stat -e instructions,cycles,mem-loads,mem-stores,cache-misses,dtlb_load_misses.miss_causes_a_walk,itlb_misses.miss_causes_a_walk ./build/app/main -i native -n $t) 2>> ../../output/perf_${element}_${t}_threads.txt
 		done
     done
 	cd -

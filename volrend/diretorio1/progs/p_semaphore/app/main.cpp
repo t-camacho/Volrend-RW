@@ -52,21 +52,19 @@ int main(int argc, char **argv) {
         ROTATE_STEPS = 4;
     }else if(!std::strcmp(input, "simsmall")) {
         std::strcpy(filename, "head-scaleddown4");
-        ROTATE_STEPS = 20;        
+        ROTATE_STEPS = 20;
     }else if(!std::strcmp(input, "simmedium")) {
         std::strcpy(filename, "head-scaleddown2");
-        ROTATE_STEPS = 50;        
+        ROTATE_STEPS = 50;
     }else if(!std::strcmp(input, "simlarge")) {
         std::strcpy(filename, "head-scaleddown2");
-        ROTATE_STEPS = 100;        
+        ROTATE_STEPS = 100;
     }else if(!std::strcmp(input, "native")) {
         std::strcpy(filename, "head");
-        ROTATE_STEPS = 1000;        
+        ROTATE_STEPS = 1000;
     }else {
         fatal("invalid input");
     }
-
-    
 
     Frame();
 
@@ -100,7 +98,7 @@ void Frame() {
     Compute_Pre_View();
 
     shd_length = LOOKUP_SIZE;
-    
+
     shm_id_shd = shmget(IPC_PRIVATE, sizeof(PIXEL)*shd_length, IPC_CREAT|IPC_EXCL|0600);
     shd_address = (PIXEL*)shmat(shm_id_shd, 0, 0);
     Allocate_Shading_Table(&shd_address, shd_length);
@@ -109,7 +107,7 @@ void Frame() {
     image_len[X] = frust_len;
     image_len[Y] = frust_len;
     image_length = image_len[X] * image_len[Y];
-    
+
     shm_id_img = shmget(IPC_PRIVATE, sizeof(PIXEL)*image_length, IPC_CREAT|IPC_EXCL|0600);
     image_address = (PIXEL*)shmat(shm_id_img, 0, 0);
     Allocate_Image(&image_address, image_length);
@@ -133,9 +131,7 @@ void Frame() {
             exit(0);
         }
     }
-    for(long i = 0;i < num_nodes; i++) {
-        wait(NULL);
-    }
+    wait(NULL);
 }
 
 void Render_Loop() {
@@ -149,7 +145,7 @@ void Render_Loop() {
     my_node = Global->Index++;
     sem_post(&Global->IndexLock);
     my_node = my_node % num_nodes;
-    
+
     inv_num_nodes = 1.0/(float)num_nodes;
     image_partition = ROUNDUP(image_length*inv_num_nodes);
 
@@ -160,7 +156,7 @@ void Render_Loop() {
 
     for (long step = 0; step < ROTATE_STEPS; step++) {
         frame = step;
-        
+
         /* initialize images here */
         local_image_address = image_address + image_partition * my_node;
 
@@ -188,7 +184,7 @@ void Render_Loop() {
         Global->Queue[my_node][0] = 0;
 
         Render(my_node);
-        
+
         if (my_node == ROOT) {
             #ifdef DIM
             sprintf(outfile, "output/%s_%ld.tiff",filename, 1000+dim*ROTATE_STEPS+step);
@@ -204,7 +200,7 @@ void Render_Loop() {
 }
 
 void Allocate_Shading_Table(PIXEL **address1, long length) {
-    std::cout << "Allocating shade lookup table of " << length*sizeof(PIXEL) 
+    std::cout << "Allocating shade lookup table of " << length*sizeof(PIXEL)
               << " bytes...\n";
 
     // *address1 = (PIXEL *) malloc(length * sizeof(PIXEL));
