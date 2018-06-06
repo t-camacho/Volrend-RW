@@ -8,7 +8,7 @@ OUTPUT    = ./output
 
 TARGET_TT = $(APP_DIR)/main
 
-FLAGS     = -O3 -Wall -std=c++0x -ltiff -pthread -fgnu-tm -lpapi
+FLAGS     = -O3 -Wall -std=c++0x -ltiff -pthread -fgnu-tm
 
 all: libed apps
 

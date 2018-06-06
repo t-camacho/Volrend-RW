@@ -15,13 +15,13 @@ void Compute_Opacity() {
 
     Allocate_Opacity(&opc_address, opc_length);
 
-    //std::cout << "Computing opacity map...\n";
+    std::cout << "Computing opacity map...\n";
 
     Opacity_Compute();
 }
 
 void Allocate_Opacity(OPACITY **address, long length) {
-    //std::cout << "Allocating opacity map of " << length*sizeof(OPACITY) << " bytes\n";
+    std::cout << "Allocating opacity map of " << length*sizeof(OPACITY) << " bytes\n";
 
     *address = (OPACITY *) malloc(length*sizeof(OPACITY));
 

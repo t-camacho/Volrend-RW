@@ -4,9 +4,6 @@
 #include "tiffio.h"
 #include "sys/wait.h"
 
-#include "../source/papi_config.hpp"
-#include "time.h"
-
 int ROTATE_STEPS;
 
 GlobalMemory *Global;
@@ -30,9 +27,6 @@ long mask_image_length;
 char filename[FILENAME_STRING_SIZE];
 char input[INPUT_DIR_SIZE] = "test";
 
-PAPI_CONFIG papi;
-sem_t* papi_mutex;
-key_t mutex_key = 567890;
 int main(int argc, char **argv) {
     int opt;
 
@@ -58,16 +52,16 @@ int main(int argc, char **argv) {
         ROTATE_STEPS = 4;
     }else if(!std::strcmp(input, "simsmall")) {
         std::strcpy(filename, "head-scaleddown4");
-        ROTATE_STEPS = 20;        
+        ROTATE_STEPS = 20;
     }else if(!std::strcmp(input, "simmedium")) {
         std::strcpy(filename, "head-scaleddown2");
-        ROTATE_STEPS = 50;        
+        ROTATE_STEPS = 50;
     }else if(!std::strcmp(input, "simlarge")) {
         std::strcpy(filename, "head-scaleddown2");
-        ROTATE_STEPS = 100;        
+        ROTATE_STEPS = 100;
     }else if(!std::strcmp(input, "native")) {
         std::strcpy(filename, "head");
-        ROTATE_STEPS = 1000;        
+        ROTATE_STEPS = 1000;
     }else {
         fatal("invalid input");
     }
@@ -104,7 +98,7 @@ void Frame() {
     Compute_Pre_View();
 
     shd_length = LOOKUP_SIZE;
-    
+
     shm_id_shd = shmget(IPC_PRIVATE, sizeof(PIXEL)*shd_length, IPC_CREAT|IPC_EXCL|0600);
     shd_address = (PIXEL*)shmat(shm_id_shd, 0, 0);
     Allocate_Shading_Table(&shd_address, shd_length);
@@ -113,7 +107,7 @@ void Frame() {
     image_len[X] = frust_len;
     image_len[Y] = frust_len;
     image_length = image_len[X] * image_len[Y];
-    
+
     shm_id_img = shmget(IPC_PRIVATE, sizeof(PIXEL)*image_length, IPC_CREAT|IPC_EXCL|0600);
     image_address = (PIXEL*)shmat(shm_id_img, 0, 0);
     Allocate_Image(&image_address, image_length);
@@ -129,40 +123,20 @@ void Frame() {
     Global->Index = NODE0;
     Global->Counter = 0;
 
-    // std::cout << "\nRendering...\n\n";
-    
-    int mutex_id;
-    if ((mutex_id = shmget(mutex_key, sizeof(sem_t), IPC_CREAT | 0666)) == 1) {
-    	fprintf(stderr, "Error when creating mutex memory\n");
-    	exit(-1);
-    }
-    papi_mutex = (sem_t*) shmat(mutex_id, NULL, 0);
-    sem_init(papi_mutex, 1, 1);
-    papi.init();
-    papi.thread_support();
+    std::cout << "\nRendering...\n\n";
+
     for(long i = 0; i < num_nodes; i++) {
         if(fork() == 0) {
             Render_Loop();
             exit(0);
         }
     }
-    for(long i = 0;i < num_nodes; i++) {
-        wait(NULL);
-    }
-    
-    shmdt(papi_mutex);
-    
+    wait(NULL);
 }
 
 void Render_Loop() {
-	int event_set = PAPI_NULL;
-	long_long values[qtd_events];
-	
-	papi.config(&event_set);
-	papi.start(event_set);
-
     PIXEL *local_image_address;
-    // char outfile[FILENAME_STRING_SIZE];
+    char outfile[FILENAME_STRING_SIZE];
     long image_partition;
     float inv_num_nodes;
     long my_node;
@@ -171,7 +145,7 @@ void Render_Loop() {
     my_node = Global->Index++;
     sem_post(&Global->IndexLock);
     my_node = my_node % num_nodes;
-    
+
     inv_num_nodes = 1.0/(float)num_nodes;
     image_partition = ROUNDUP(image_length*inv_num_nodes);
 
@@ -182,7 +156,7 @@ void Render_Loop() {
 
     for (long step = 0; step < ROTATE_STEPS; step++) {
         frame = step;
-        
+
         /* initialize images here */
         local_image_address = image_address + image_partition * my_node;
 
@@ -210,7 +184,7 @@ void Render_Loop() {
         Global->Queue[my_node][0] = 0;
 
         Render(my_node);
-        /*
+
         if (my_node == ROOT) {
             #ifdef DIM
             sprintf(outfile, "output/%s_%ld.tiff",filename, 1000+dim*ROTATE_STEPS+step);
@@ -218,28 +192,16 @@ void Render_Loop() {
             sprintf(outfile, "output/%s_%ld.tiff",filename, 1000+step);
             #endif
             WriteGrayscaleTIFF(outfile, image_len[X],image_len[Y],image_len[X], image_address);
-        }*/
+        }
     }
     #ifdef DIM
     }
     #endif
-    
-	papi.stop(event_set, values);
-	int mutex_id;
-	if ((mutex_id = shmget(mutex_key, sizeof(sem_t), 0666)) == -1) {
-		fprintf(stderr, "Error reading mutex memory\n");
-		exit(-1);
-	}
-	papi_mutex = (sem_t*) shmat(mutex_id, NULL, 0);
-	sem_wait(papi_mutex);
-	papi.print(values, true);
-	sem_post(papi_mutex);
-	shmdt(papi_mutex);
 }
 
 void Allocate_Shading_Table(PIXEL **address1, long length) {
-    // std::cout << "Allocating shade lookup table of " << length*sizeof(PIXEL) 
-              //<< " bytes...\n";
+    std::cout << "Allocating shade lookup table of " << length*sizeof(PIXEL)
+              << " bytes...\n";
 
     // *address1 = (PIXEL *) malloc(length * sizeof(PIXEL));
 
@@ -252,7 +214,7 @@ void Allocate_Shading_Table(PIXEL **address1, long length) {
 }
 
 void Allocate_Image(PIXEL **address, long length) {
-    // std::cout << "Allocating image of " << length*sizeof(PIXEL) << " bytes\n";
+    std::cout << "Allocating image of " << length*sizeof(PIXEL) << " bytes\n";
 
     // *address = (PIXEL *) malloc(length*sizeof(PIXEL));
 
@@ -265,7 +227,7 @@ void Allocate_Image(PIXEL **address, long length) {
 }
 
 void Lallocate_Image(PIXEL **address, long length) {
-    // std::cout << "Allocating image of " << length*sizeof(PIXEL) << " bytes...\n";
+    std::cout << "Allocating image of " << length*sizeof(PIXEL) << " bytes...\n";
     *address = (PIXEL *) calloc(length,sizeof(PIXEL));
     if (*address == NULL)
         fatal("No space available for image.");

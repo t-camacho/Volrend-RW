@@ -16,13 +16,13 @@ void Compute_Normal() {
     norm_length = norm_len[X] * norm_len[Y] * norm_len[Z];
     Allocate_Normal(&norm_address, norm_length);
 
-    //std::cout << "Computing normal...\n";
+    std::cout << "Computing normal...\n";
 
     Normal_Compute();
 }
 
 void Allocate_Normal(NORMAL **address, long length) {
-    //std::cout << "Allocating normal map of " << length*sizeof(NORMAL) << " bytes\n";
+    std::cout << "Allocating normal map of " << length*sizeof(NORMAL) << " bytes\n";
 
     *address = (NORMAL *) malloc(length*sizeof(NORMAL));
 

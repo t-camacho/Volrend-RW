@@ -25,7 +25,7 @@ void Compute_Octree() {
         pyr_levels++;        
     }
 
-    //std::cout << "Computing binary pyramid of " << pyr_levels << " levels...\n";
+    std::cout << "Computing binary pyramid of " << pyr_levels << " levels...\n";
 
     for (long i = 0; i < NM; i++) {
         pyr_len[0][i] = opc_len[i];
@@ -35,11 +35,11 @@ void Compute_Octree() {
     pyr_length[0] = (pyr_len[0][X]*pyr_len[0][Y]*pyr_len[0][Z]+7)/8;
     Allocate_Pyramid_Level(&pyr_address[0], pyr_length[0]);
 
-    //std::cout << "Computing octree base...\n";
+    std::cout << "Computing octree base...\n";
 
     Compute_Base();
 
-    //std::cout << "Performing OR of eight neighbors in binary mask...\n";
+    std::cout << "Performing OR of eight neighbors in binary mask...\n";
 
     Or_Neighbors_In_Base();
 
@@ -61,7 +61,7 @@ void Compute_Octree() {
 }
 
 void Allocate_Pyramid_Level(BYTE **address, long length) {
-    //std::cout << "Allocating pyramid level of " << length*sizeof(BYTE) << " bytes...\n";
+    std::cout << "Allocating pyramid level of " << length*sizeof(BYTE) << " bytes...\n";
 
     *address = (BYTE *) malloc(length*sizeof(BYTE));
 
@@ -135,8 +135,8 @@ void Compute_Pyramid_Level(long level) {
     long inx_plus_one,iny_plus_one,inz_plus_one;
     BOOLEAN bit;
 
-    //std::cout << "Computing pyramid level " << level << " from " << level-1 
-    //                << " level...\n";
+    std::cout << "Computing pyramid level " << level << " from " << level-1 
+                    << " level...\n";
 
     for (outz = 0; outz < pyr_len[level][Z]; outz++) {
         inz = outz << 1;

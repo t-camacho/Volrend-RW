@@ -49,11 +49,11 @@ void Load_Map(char *input, char *filename) {
     
     Close_File(fd);
 
-    //std::cout << "Loading map from .den file...\n";
+    std::cout << "Loading map from .den file...\n";
 }
 
 void Allocate_Map(DENSITY **address, long length) {
-    //printf("Allocating density map of %ld bytes...\n", length*sizeof(DENSITY));
+    printf("Allocating density map of %ld bytes...\n", length*sizeof(DENSITY));
 
     *address = (DENSITY *) malloc(length * sizeof(DENSITY));
 
