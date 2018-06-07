@@ -4,6 +4,9 @@
 #include "incl.h"
 #include "tiffio.h"
 
+#include "time.h"
+#include "../source/papi_config.hpp"
+
 int ROTATE_STEPS;
 
 GlobalMemory *Global;
@@ -27,6 +30,8 @@ long mask_image_length;
 char filename[FILENAME_STRING_SIZE];
 char input[INPUT_DIR_SIZE] = "test";
 
+PAPI_CONFIG papi;
+pthread_mutex_t papi_mutex = PTHREAD_MUTEX_INITIALIZER;
 int main(int argc, char **argv) {
     int opt;
 
@@ -114,8 +119,10 @@ void Frame() {
     Global->Index = NODE0;
     Global->Counter = 0;
 
-    std::cout << "\nRendering...\n\n";
-
+    //std::cout << "\nRendering...\n\n";
+    
+    papi.init();
+    papi.thread_support();
     for(long i = 0; i < num_nodes; i++) {
         pthread_create(&threads[i], NULL, Render_Loop, NULL);
     }
@@ -126,8 +133,14 @@ void Frame() {
 }
 
 void* Render_Loop(void *arg) {
+	int event_set = PAPI_NULL;
+	long_long values[qtd_events];
+	
+	papi.config(&event_set);
+	papi.start(event_set);
+
     PIXEL *local_image_address;
-    char outfile[FILENAME_STRING_SIZE];
+    //char outfile[FILENAME_STRING_SIZE];
     long image_partition;
     float inv_num_nodes;
     long my_node;
@@ -176,7 +189,7 @@ void* Render_Loop(void *arg) {
         Global->Queue[my_node][0] = 0;
 
         Render(my_node);
-        
+        /*
         if (my_node == ROOT) {
             #ifdef DIM
             sprintf(outfile, "output/%s_%ld.tiff",filename, 1000+dim*ROTATE_STEPS+step);
@@ -184,18 +197,23 @@ void* Render_Loop(void *arg) {
             sprintf(outfile, "output/%s_%ld.tiff",filename, 1000+step);
             #endif
             WriteGrayscaleTIFF(outfile, image_len[X],image_len[Y],image_len[X], image_address);
-        }
+        }*/
     }
     #ifdef DIM
     }
     #endif
+    
+    papi.stop(event_set, values);
+	pthread_mutex_lock(&papi_mutex);
+	papi.print(values, true);
+	pthread_mutex_unlock(&papi_mutex);
 
     return NULL;
 }
 
 void Allocate_Shading_Table(PIXEL **address1, long length) {
-    std::cout << "Allocating shade lookup table of " << length*sizeof(PIXEL) 
-              << " bytes...\n";
+    //std::cout << "Allocating shade lookup table of " << length*sizeof(PIXEL) 
+    //          << " bytes...\n";
 
     *address1 = (PIXEL *) malloc(length * sizeof(PIXEL));
 
@@ -208,7 +226,7 @@ void Allocate_Shading_Table(PIXEL **address1, long length) {
 }
 
 void Allocate_Image(PIXEL **address, long length) {
-    std::cout << "Allocating image of " << length*sizeof(PIXEL) << " bytes\n";
+    //std::cout << "Allocating image of " << length*sizeof(PIXEL) << " bytes\n";
 
     *address = (PIXEL *) malloc(length*sizeof(PIXEL));
 
@@ -221,7 +239,7 @@ void Allocate_Image(PIXEL **address, long length) {
 }
 
 void Lallocate_Image(PIXEL **address, long length) {
-    std::cout << "Allocating image of " << length*sizeof(PIXEL) << " bytes...\n";
+    //std::cout << "Allocating image of " << length*sizeof(PIXEL) << " bytes...\n";
     *address = (PIXEL *) calloc(length,sizeof(PIXEL));
     if (*address == NULL)
         fatal("No space available for image.");

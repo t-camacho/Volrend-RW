@@ -4,6 +4,9 @@
 #include "incl.h"
 #include "tiffio.h"
 
+#include "time.h"
+#include "../source/papi_config.hpp"
+
 int ROTATE_STEPS = 4;
 
 long image_section[NI];
@@ -47,16 +50,16 @@ int main(int argc, char **argv) {
         ROTATE_STEPS = 4;
     }else if(!std::strcmp(input, "simsmall")) {
         std::strcpy(filename, "head-scaleddown4"); //20
-        ROTATE_STEPS = 20;        
+        ROTATE_STEPS = 20;
     }else if(!std::strcmp(input, "simmedium")) {
         std::strcpy(filename, "head-scaleddown2"); //50
-        ROTATE_STEPS = 50;        
+        ROTATE_STEPS = 50;
     }else if(!std::strcmp(input, "simlarge")) {
         std::strcpy(filename, "head-scaleddown2"); //100
-        ROTATE_STEPS = 100;        
+        ROTATE_STEPS = 100;
     }else if(!std::strcmp(input, "native")) {
         std::strcpy(filename, "head");             //1000
-        ROTATE_STEPS = 1000;        
+        ROTATE_STEPS = 1000;
     }else {
         fatal("invalid input");
     }
@@ -75,14 +78,14 @@ void Frame() {
     Compute_Pre_View();
 
     shd_length = LOOKUP_SIZE;
-    
+
     Allocate_Shading_Table(&shd_address, shd_length);
 
     /* allocate space for image */
     image_len[X] = frust_len;
     image_len[Y] = frust_len;
     image_length = image_len[X] * image_len[Y];
-    
+
     Allocate_Image(&image_address, image_length);
 
     block_xlen = image_len[X];
@@ -95,17 +98,25 @@ void Frame() {
     Compute_Octree();
     Deallocate_Map(&map_address);
 
-    std::cout << "\nRendering...\n\n";
-
+    //std::cout << "\nRendering...\n\n";
+    
+    PAPI_CONFIG papi;
+    int event_set = PAPI_NULL;
+    long_long values[qtd_events];
+    papi.init();
+    papi.config(&event_set);
+    papi.start(event_set);
     Render_Loop();
+    papi.stop(event_set, values);
+    papi.print(values);
 }
 
 void Render_Loop() {
     PIXEL *local_image_address;
     long image_partition;
-    char outfile[FILENAME_STRING_SIZE];
+    //char outfile[FILENAME_STRING_SIZE];
     float inv_num_nodes = 1.0;
-    
+
     image_partition = ROUNDUP(image_length*inv_num_nodes);
 
     #ifdef DIM
@@ -115,24 +126,26 @@ void Render_Loop() {
 
     for (long step = 0; step < ROTATE_STEPS; step++) {
         frame = step;
-        
+
         /* initialize images here */
         local_image_address = image_address + image_partition * 0;
         for (long i = 0; i < image_length; i++) {
             *local_image_address++ = background;
         }
         #ifdef DIM
-	    Select_View((float)STEP_SIZE, dim);
+	       Select_View((float)STEP_SIZE, dim);
         #else
         Select_View((float)STEP_SIZE, Y);
         #endif
+
         Render();
+        /*
         #ifdef DIM
 	    sprintf(outfile, "output/%s_%ld.tiff",filename, 1000+dim*ROTATE_STEPS+step);
         #else
 	    sprintf(outfile, "output/%s_%ld.tiff",filename, 1000+step);
         #endif
-        WriteGrayscaleTIFF(outfile, image_len[X],image_len[Y],image_len[X], image_address);
+        WriteGrayscaleTIFF(outfile, image_len[X],image_len[Y],image_len[X], image_address);*/
     }
     #ifdef DIM
     }
@@ -140,8 +153,8 @@ void Render_Loop() {
 }
 
 void Allocate_Shading_Table(PIXEL **address1, long length) {
-    std::cout << "Allocating shade lookup table of " << length*sizeof(PIXEL) 
-              << " bytes...\n";
+    //std::cout << "Allocating shade lookup table of " << length*sizeof(PIXEL)
+    //          << " bytes...\n";
 
     *address1 = (PIXEL *) malloc(length * sizeof(PIXEL));
 
@@ -154,7 +167,7 @@ void Allocate_Shading_Table(PIXEL **address1, long length) {
 }
 
 void Allocate_Image(PIXEL **address, long length) {
-    std::cout << "Allocating image of " << length*sizeof(PIXEL) << " bytes\n";
+    //std::cout << "Allocating image of " << length*sizeof(PIXEL) << " bytes\n";
 
     *address = (PIXEL *) malloc(length*sizeof(PIXEL));
 
@@ -169,7 +182,7 @@ void Allocate_Image(PIXEL **address, long length) {
 long WriteGrayscaleTIFF(char *filename, long width, long height, long scanbytes, unsigned char *data) {
     double factor;
     unsigned long cmap[256];
-    
+
     TIFF *outimage;
 
     factor = (double)((1 << 16) - 1) / (double)((1 << 8) - 1);

@@ -4,9 +4,6 @@ Allocating normal map of 14322552 bytes
 Computing normal...
 Allocating opacity map of 7161276 bytes
 Computing opacity map...
-Allocating shade lookup table of 7938 bytes...
-Allocating image of 140625 bytes
-Allocating image of 16 bytes...
 Computing binary pyramid of 9 levels...
 Allocating pyramid level of 895160 bytes...
 Computing octree base...
@@ -27,6 +24,35 @@ Allocating pyramid level of 1 bytes...
 Computing pyramid level 7 from 6 level...
 Allocating pyramid level of 1 bytes...
 Computing pyramid level 8 from 7 level...
+		Thread 139889260160768d:
 
-Rendering...
+Level 1 data cache misses: 961360697
+Level 1 instructions cache misses: 2140528
+Level 2 data cache misses: 365046368
+Level 2 instructions cache misses: 1638874
+Level 1 total cache misses: 963501225
+Level 2 total cache misses: 366685242
+L2 instruction cache accesses: 2140528
+L3 data cache accesses: 365046368
+L3 instruction cache accesses: 1638874
+L3 total cache accesses: 366685242
+L2 instruction cache reads: 2140528
+L3 instruction cache reads: 1638874
+Total instructions executed: 326808410173
+
+		Thread 139889268553472d:
+
+Level 1 data cache misses: 641890133
+Level 1 instructions cache misses: 4361200
+Level 2 data cache misses: 294808327
+Level 2 instructions cache misses: 3300750
+Level 1 total cache misses: 646251333
+Level 2 total cache misses: 298109077
+L2 instruction cache accesses: 4361200
+L3 data cache accesses: 294808327
+L3 instruction cache accesses: 3300750
+L3 total cache accesses: 298109077
+L2 instruction cache reads: 4361200
+L3 instruction cache reads: 3300750
+Total instructions executed: 326369647685
 

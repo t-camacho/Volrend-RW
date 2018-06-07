@@ -4,9 +4,6 @@ Allocating normal map of 14322552 bytes
 Computing normal...
 Allocating opacity map of 7161276 bytes
 Computing opacity map...
-Allocating shade lookup table of 7938 bytes...
-Allocating image of 140625 bytes
-Allocating image of 16 bytes...
 Computing binary pyramid of 9 levels...
 Allocating pyramid level of 895160 bytes...
 Computing octree base...
@@ -27,6 +24,67 @@ Allocating pyramid level of 1 bytes...
 Computing pyramid level 7 from 6 level...
 Allocating pyramid level of 1 bytes...
 Computing pyramid level 8 from 7 level...
+		Thread 140673147057920d:
 
-Rendering...
+Level 1 data cache misses: 724621962
+Level 1 instructions cache misses: 1200058
+Level 2 data cache misses: 213219656
+Level 2 instructions cache misses: 874521
+Level 1 total cache misses: 725822020
+Level 2 total cache misses: 214094177
+L2 instruction cache accesses: 1200058
+L3 data cache accesses: 213219656
+L3 instruction cache accesses: 874521
+L3 total cache accesses: 214094177
+L2 instruction cache reads: 1200058
+L3 instruction cache reads: 874521
+Total instructions executed: 161459843930
+
+		Thread 140673121879808d:
+
+Level 1 data cache misses: 470119645
+Level 1 instructions cache misses: 1224200
+Level 2 data cache misses: 176006287
+Level 2 instructions cache misses: 864345
+Level 1 total cache misses: 471343845
+Level 2 total cache misses: 176870632
+L2 instruction cache accesses: 1224200
+L3 data cache accesses: 176006287
+L3 instruction cache accesses: 864345
+L3 total cache accesses: 176870632
+L2 instruction cache reads: 1224200
+L3 instruction cache reads: 864345
+Total instructions executed: 165044870592
+
+		Thread 140673138665216d:
+
+Level 1 data cache misses: 461913863
+Level 1 instructions cache misses: 1685087
+Level 2 data cache misses: 169821179
+Level 2 instructions cache misses: 1329141
+Level 1 total cache misses: 463598950
+Level 2 total cache misses: 171150320
+L2 instruction cache accesses: 1685087
+L3 data cache accesses: 169821179
+L3 instruction cache accesses: 1329141
+L3 total cache accesses: 171150320
+L2 instruction cache reads: 1685087
+L3 instruction cache reads: 1329141
+Total instructions executed: 164072055164
+
+		Thread 140673130272512d:
+
+Level 1 data cache misses: 519465308
+Level 1 instructions cache misses: 1278059
+Level 2 data cache misses: 194585465
+Level 2 instructions cache misses: 919636
+Level 1 total cache misses: 520743367
+Level 2 total cache misses: 195505101
+L2 instruction cache accesses: 1278059
+L3 data cache accesses: 194585465
+L3 instruction cache accesses: 919636
+L3 total cache accesses: 195505101
+L2 instruction cache reads: 1278059
+L3 instruction cache reads: 919636
+Total instructions executed: 160928095520
 

@@ -8,7 +8,7 @@ OUTPUT    = ./output
 
 TARGET_S  = $(APP_DIR)/main
 
-FLAGS     = -O3 -Wall -std=c++0x -ltiff
+FLAGS     = -O3 -Wall -std=c++0x -ltiff -lpapi
 
 all: libed apps
 
